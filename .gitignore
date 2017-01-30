@@ -1,1 +1,3 @@
 nanogit
+*.rsa
+*.rsa.pub
