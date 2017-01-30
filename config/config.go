@@ -63,7 +63,7 @@ func (ci *ConfigInfo) ReadFile() {
 	t := Config{}
 	err = yaml.Unmarshal(data, &t)
 	if err != nil {
-		log.Fatal(4, "config: cannot deserialize config file: %s, error: %v", ci.ConfigFile, err)
+		log.Fatal("config: cannot deserialize config file: %s, error: %v", ci.ConfigFile, err)
 	}
 	ci.Conf = t
 }

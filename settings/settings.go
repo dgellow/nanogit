@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,10 +25,6 @@ func execPath() (string, error) {
 func init() {
 	var err error
 	if AppPath, err = execPath(); err != nil {
-		log.Fatal(4, "settings: fail to get app path: %v", err)
+		log.Fatal("settings: fail to get app path: %v", err)
 	}
-}
-
-func NewConsoleLogger(logLevel int) {
-	log.NewLogger(0, "console", fmt.Sprintf(`{"level": %d}`, logLevel))
 }

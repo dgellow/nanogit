@@ -1,13 +1,16 @@
 package log
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"runtime"
 )
 
 type Brush func(string) string
+
+func init() {
+	Register("console", NewConsole)
+}
 
 func NewBrush(color string) Brush {
 	pre := "\033["
@@ -27,43 +30,26 @@ var colors = []Brush{
 	NewBrush("1;31"), // Fatal      red
 }
 
-// ConsoleWriter implements LoggerInterface and writes messages to terminal.
+// ConsoleWriter implements interface LogProvider and writes messages to terminal.
 type ConsoleWriter struct {
-	lg    *log.Logger
-	Level int `json:"level"`
+	Log     *log.Logger
 }
 
 // create ConsoleWriter returning as LoggerInterface.
-func NewConsole() LoggerInterface {
+func NewConsole() LogProvider {
 	return &ConsoleWriter{
-		lg:    log.New(os.Stdout, "", log.Ldate|log.Ltime),
-		Level: TRACE,
+		Log: log.New(os.Stdout, "", log.Ldate|log.Ltime),
 	}
 }
 
-func (cw *ConsoleWriter) Init(config string) error {
-	return json.Unmarshal([]byte(config), cw)
-}
-
-func (cw *ConsoleWriter) WriteMsg(msg string, skip, level int) error {
-	if cw.Level > level {
+func (cw *ConsoleWriter) Write(l *Logger, msg string, level int) error {
+	if l.LogLevel > level {
 		return nil
 	}
 	if runtime.GOOS == "windows" {
-		cw.lg.Println(msg)
+		cw.Log.Println(msg)
 	} else {
-		cw.lg.Println(colors[level](msg))
+		cw.Log.Println(colors[level](msg))
 	}
 	return nil
-}
-
-func (_ *ConsoleWriter) Flush() {
-
-}
-
-func (_ *ConsoleWriter) Destroy() {
-}
-
-func init() {
-	Register("console", NewConsole)
 }

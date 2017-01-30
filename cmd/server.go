@@ -37,16 +37,17 @@ func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, 
 
 	_, err := settings.ConfInfo.LookupUserByKey(keystr)
 	if err != nil {
-		log.Error(3, "server: unauthorized access: %v", err)
+		log.Error("server: unauthorized access: %v", err)
 		return nil, err
 	}
 	return &ssh.Permissions{}, nil
 }
 
 func runServer(c *cli.Context) error {
+	log.Log.LogLevel = c.Int("loglevel")
 	log.Trace("server: runServer")
 
-	settings.NewConsoleLogger(c.Int("loglevel"))
+	log.Trace("server: read config file")
 	settings.ConfInfo.ConfigFile = c.String("config")
 	settings.ConfInfo.ReadFile()
 
@@ -65,6 +66,7 @@ func runServer(c *cli.Context) error {
 		KeygenConfig:      sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: pubKeyHandler,
 		CommandsCallbacks: commandsHandlers,
+		Log:               log.Log,
 	}
 	sshooks.Listen(sshooksConfig)
 
