@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	Log             *Logger
+	Log *Logger
 )
 
 func init() {
 	Log = &Logger{
-		Prefix: "nanogit",
+		Prefix:  "nanogit",
 		Adapter: "console",
 	}
 }
@@ -58,10 +58,10 @@ type LogProvider interface {
 	Write(l *Logger, msg string, level int) error
 }
 
-var adapters = make(map[string]func()LogProvider)
+var adapters = make(map[string]func() LogProvider)
 
 // Registers given logger provider to adapters.
-func Register(name string, log func()LogProvider) {
+func Register(name string, log func() LogProvider) {
 	if log == nil {
 		panic("log: register provider is nil")
 	}
@@ -80,7 +80,7 @@ type logMsg struct {
 type Logger struct {
 	Prefix   string
 	LogLevel int
-	Adapter string
+	Adapter  string
 }
 
 func (l *Logger) writerMsg(level int, msg string) {

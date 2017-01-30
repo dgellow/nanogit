@@ -32,7 +32,7 @@ var colors = []Brush{
 
 // ConsoleWriter implements interface LogProvider and writes messages to terminal.
 type ConsoleWriter struct {
-	Log     *log.Logger
+	Log *log.Logger
 }
 
 // create ConsoleWriter returning as LoggerInterface.
