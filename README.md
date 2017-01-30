@@ -31,6 +31,9 @@ $ nanogit server
 
 # If you want to use a different config file
 $ nanogit server --config /path/to/custom/configfile.yml
+
+# When the server is running you can begin to use git commands
+$ git clone git@localhost:1337/QRCLabs/myproject.git
 ```
 
 ## Configuration
