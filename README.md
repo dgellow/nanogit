@@ -12,8 +12,8 @@
 
 It has following features:
 
-- Organizations to group repositories and manage rights
-- Teams, a group of user in an organization
+- Organizations to group repositories and manage rights(read/write) **in development**
+- Teams, a group of users in an organization **in development**
 - Entire config in one file, in a human readable format ([YAML](https://en.wikipedia.org/wiki/YAML))
 
 ## Install
