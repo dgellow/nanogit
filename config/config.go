@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v2"
 
@@ -58,6 +59,7 @@ func (ci *ConfigInfo) ReadFile() {
 	data, err := ioutil.ReadFile(ci.ConfigFile)
 	if err != nil {
 		panic(err)
+		os.Exit(1)
 	}
 
 	t := Config{}
