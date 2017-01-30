@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 	"github.com/urfave/cli"
-	"github.com/qrclabs/sshgit"
+	"github.com/qrclabs/sshooks"
 
 	"github.com/qrclabs/nanogit/log"
 	"github.com/qrclabs/nanogit/settings"
@@ -23,6 +23,8 @@ var CmdServer = cli.Command{
 		},
 	},
 }
+
+
 
 func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 	log.Trace("server: pubKeyHandler")
@@ -46,15 +48,37 @@ func runServer(c *cli.Context) error {
 
 	log.Trace("server: ConfigFile: %s", settings.ConfInfo.ConfigFile)
 
-	sshConfig := sshgit.ServerConfig{
+	commandsHandlers := map[string]func(string) error {
+		"git-upload-pack": handleUploadPack,
+		"git-upload-archive": handleUploadArchive,
+		"git-receive-pack": handleReceivePack,
+	}
+
+	sshooksConfig := &sshooks.ServerConfig{
 		Host: "localhost",
 		Port: 1337,
 		PrivatekeyPath: "key.rsa",
-		KeygenConfig: sshgit.SSHKeygenConfig{"rsa", ""},
+		KeygenConfig: sshooks.SSHKeygenConfig{"rsa", ""},
 		PublicKeyCallback: pubKeyHandler,
+		CommandsCallbacks: commandsHandlers,
 	}
-	sshgit.Listen(sshConfig)
+ 	sshooks.Listen(sshooksConfig)
 
 	// Keep the program running
 	for {}
+}
+
+func handleUploadPack(args string) error {
+	log.Trace("Handle git-upload-pack: args: %s", args)
+	return nil
+}
+
+func handleUploadArchive(args string) error {
+	log.Trace("Handle git-upload-archive: args: %s", args)
+	return nil
+}
+
+func handleReceivePack(args string) error {
+	log.Trace("Handle git-receive-pack: args: %s", args)
+	return nil
 }

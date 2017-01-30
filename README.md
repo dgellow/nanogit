@@ -4,4 +4,4 @@
 
 # Simple git server with rights management and hook system
 
-Based on [QRCLabs/sshgit](https://github.com/QRCLabs/sshgit).
+Based on [QRCLabs/sshooks](https://github.com/QRCLabs/sshooks).

@@ -1,4 +1,4 @@
-package sshgit
+package sshooks
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -15,9 +14,9 @@ import (
 	"github.com/gogits/gogs/modules/log"
 )
 
-var packageName = "SSHGit"
+var packageName = "sshooks"
 
-func FormatLog(s string) string {
+func formatLog(s string) string {
 	return fmt.Sprintf("%s: %s", packageName, s)
 }
 
@@ -35,15 +34,16 @@ type ServerConfig struct {
 	PrivatekeyPath    string
 	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error)
 	KeygenConfig      SSHKeygenConfig
+	CommandsCallbacks map[string]func(args string) error
 }
 
 // Starts an SSH server on given port
-func Listen(config ServerConfig) {
+func Listen(config *ServerConfig) {
 	if config.PublicKeyCallback == nil {
-		log.Fatal(4, FormatLog("PublicKeyCallback cannot be nil"))
+		log.Fatal(4, formatLog("PublicKeyCallback cannot be nil"))
 	}
 	if config.PrivatekeyPath == "" {
-		log.Fatal(4, FormatLog("PrivatekeyPath cannot be empty"))
+		log.Fatal(4, formatLog("PrivatekeyPath cannot be empty"))
 	}
 	if config.KeygenConfig.Type == "" {
 		config.KeygenConfig.Passphrase = "rsa"
@@ -60,19 +60,19 @@ func Listen(config ServerConfig) {
 		// -N <new_passphrase>
 		_, stderr, err := ExecCmd("ssh-keygen", "-f", keyPath, "-t", config.KeygenConfig.Type, "-N", config.KeygenConfig.Passphrase)
 		if err != nil {
-			log.Fatal(4, FormatLog("Failed to generate private key: %v - %s"), err, stderr)
+			log.Fatal(4, formatLog("Failed to generate private key: %v - %s"), err, stderr)
 		}
-		log.Trace(FormatLog("Generated a new private key at: %s"), keyPath)
+		log.Trace(formatLog("Generated a new private key at: %s"), keyPath)
 	}
 
 	// Read private key
 	privateBytes, err := ioutil.ReadFile(keyPath)
 	if err != nil {
-		log.Fatal(4, FormatLog("Failed to read private key"))
+		log.Fatal(4, formatLog("Failed to read private key"))
 	}
 	private, err := ssh.ParsePrivateKey(privateBytes)
 	if err != nil {
-		log.Fatal(4, FormatLog("Failed to parse private key"))
+		log.Fatal(4, formatLog("Failed to parse private key"))
 	}
 	sshConfig.AddHostKey(private)
 
@@ -81,22 +81,22 @@ func Listen(config ServerConfig) {
 		host = "localhost"
 	}
 
-	go serve(sshConfig, host, config.Port)
+	go serve(config, sshConfig, host, config.Port)
 }
 
 // Actual server
-func serve(config *ssh.ServerConfig, host string, port uint) {
+func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port uint) {
 	// Listen on given host and port
 	listener, err := net.Listen("tcp", host+":"+UIntToStr(port))
 	if err != nil {
-		log.Fatal(4, FormatLog("Failed to start SSH server: %v"), err)
+		log.Fatal(4, formatLog("Failed to start SSH server: %v"), err)
 	}
 
 	// Infinite loop
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Error(3, FormatLog("Error accepting incoming connection: %v"), err)
+			log.Error(3, formatLog("Error accepting incoming connection: %v"), err)
 			continue
 		}
 
@@ -106,20 +106,20 @@ func serve(config *ssh.ServerConfig, host string, port uint) {
 		// user could easily block entire loop. For example, user could
 		// be asked to trust server key fingerprint and hangs.
 		go func() {
-			log.Warn(FormatLog("Handshaking was terminated: %v"), err)
-			sConn, channels, reqs, err := ssh.NewServerConn(conn, config)
+			log.Warn(formatLog("Handshaking was terminated: %v"), err)
+			sConn, channels, reqs, err := ssh.NewServerConn(conn, sshConfig)
 			if err != nil {
 				if err == io.EOF {
-					log.Warn(FormatLog(fmt.Sprintf("Handshaking was terminated: %v", err)))
+					log.Warn(formatLog(fmt.Sprintf("Handshaking was terminated: %v", err)))
 				} else {
-					log.Error(3, FormatLog(fmt.Sprintf("Error on handshaking: %v", err)))
+					log.Error(3, formatLog(fmt.Sprintf("Error on handshaking: %v", err)))
 				}
 				return
 			}
 
-			log.Trace(FormatLog(fmt.Sprintf("Connection from %s (%s)", sConn.RemoteAddr(), sConn.ClientVersion())))
+			log.Trace(formatLog(fmt.Sprintf("Connection from %s (%s)", sConn.RemoteAddr(), sConn.ClientVersion())))
 			go ssh.DiscardRequests(reqs)
-			go handleServerConn(sConn.Permissions.Extensions["key-id"], channels)
+			go handleServerConn(config, sConn.Permissions.Extensions["key-id"], channels)
 		}()
 	}
 }
@@ -133,7 +133,7 @@ func cleanCommand(cmd string) string {
 	return cmd[i:]
 }
 
-func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
+func handleServerConn(config *ServerConfig, keyID string, chans <-chan ssh.NewChannel) {
 	fmt.Println("Handle server connection")
 
 	// Loop on channels
@@ -145,7 +145,7 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 
 		ch, reqs, err := newChan.Accept()
 		if err != nil {
-			log.Error(3, FormatLog("Error accepting channel: %v"), err)
+			log.Error(3, formatLog("Error accepting channel: %v"), err)
 			continue
 		}
 
@@ -163,7 +163,7 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 				case "env":
 					args := strings.Split(strings.Replace(payload, "\x00", "", -1), "\v")
 					if len(args) != 2 {
-						log.Error(3, FormatLog("Invalid env arguments: %#v"), args)
+						log.Error(3, formatLog("Invalid env arguments: %#v"), args)
 						continue
 					}
 					args[0] = strings.TrimLeft(args[0], "\x04")
@@ -174,50 +174,14 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 						return
 					}
 				case "exec":
-					cmdName := strings.TrimLeft(payload, "'()")
-					log.Trace(FormatLog("Cleaned payload: %v"), cmdName)
-
-					// Arguments for the `gogs serv` command
-					// args := []string{"serv", "key-" + keyID, "--config=" + setting.CustomConf}
-
-					// Call the program used to handle git actions
-					args := []string{""}
-					command := "ls"
-					cmd := exec.Command(command, args...)
-					cmd.Env = append(os.Environ(), "SSH_ORIGINAL_COMMAND="+cmdName)
-
-					stdout, err := cmd.StdoutPipe()
+					cmd := strings.TrimLeft(payload, "'()")
+					log.Trace(formatLog("Cleaned payload: %v"), cmd)
+					err := handleCommand(config, cmd)
 					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stdout: %v"), err)
-						return
-					}
-					stderr, err := cmd.StderrPipe()
-					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stderr: %v"), err)
-						return
-					}
-					input, err := cmd.StdinPipe()
-					if err != nil {
-						log.Error(3, FormatLog("Error when reading command stdin: %v"), err)
-						return
-					}
-
-					if err = cmd.Start(); err != nil {
-						log.Error(3, FormatLog("Error when starting the command: %v"), err)
-						return
+						log.Error(3, "Error in command handler: cmd: %s, error: %v", cmd, err)
 					}
 
 					req.Reply(true, nil)
-					go io.Copy(input, ch)
-					io.Copy(ch, stdout)
-					io.Copy(ch.Stderr(), stderr)
-
-					err = cmd.Wait()
-					if err != nil {
-						log.Error(3, FormatLog("Error during the command call: %v"), err)
-						return
-					}
-
 					ch.SendRequest("exit-status", false, []byte{0, 0, 0, 0})
 					return
 				default:
@@ -228,4 +192,22 @@ func handleServerConn(keyID string, chans <-chan ssh.NewChannel) {
 			}
 		}(reqs)
 	}
+}
+
+func parseCommand(cmd string) (exec string, args string) {
+	ss := strings.SplitN(cmd, " ", 2)
+	if len(ss) != 2 {
+		return "", ""
+	}
+	return ss[0], strings.Replace(ss[1], "'/", "'", 1)
+}
+
+func handleCommand(config *ServerConfig, cmd string) error {
+	exec, args := parseCommand(cmd)
+	cmdHandler, present := config.CommandsCallbacks[exec]
+	if !present {
+		log.Trace("No handler for command: %s, args: %v", exec, args)
+		return nil
+	}
+	return cmdHandler(args)
 }

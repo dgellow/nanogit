@@ -1,16 +1,16 @@
-hash: 3bb3dbf987d4769b0ea91e6945141e16a10f82e2c373e8e17f072a769b638078
-updated: 2017-01-30T01:26:20.458393532+01:00
+hash: e8a4617473e97135c6d6c307589cda8e86d9f178332ef8fe31c3441c6f94e767
+updated: 2017-01-30T17:15:50.195817465+01:00
 imports:
 - name: github.com/gogits/gogs
   version: 114c179e5a50e3313f7a5894100693805e64e440
   subpackages:
   - modules/log
-- name: github.com/qrclabs/sshgit
-  version: c6c06068dd4908b748db340de8e079683358d84e
+- name: github.com/qrclabs/sshooks
+  version: 16ee5309e4854b2ca5e1e6ab81b3a680b034a4a3
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/crypto
-  version: 854ae91cdcbf914b499b1d7641d07859f3653481
+  version: a59c127441a8ae2ad9b0fb300ab36a6558bba697
   subpackages:
   - curve25519
   - ed25519
