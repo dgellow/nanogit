@@ -5,12 +5,12 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/qrclabs/nanogit/log"
 	"github.com/qrclabs/nanogit/config"
+	"github.com/qrclabs/nanogit/log"
 )
 
 var (
-	AppPath string
+	AppPath  string
 	ConfInfo config.ConfigInfo
 )
 

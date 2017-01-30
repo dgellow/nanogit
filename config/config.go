@@ -1,8 +1,8 @@
 package config
 
 import (
-	"io/ioutil"
 	"errors"
+	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
 
@@ -11,47 +11,47 @@ import (
 
 type ConfigInfo struct {
 	ConfigFile string
-	Conf Config
+	Conf       Config
 }
 
 type ServerConfig struct {
-	Root string
-	User string
+	Root  string
+	User  string
 	Group string
 }
 
 type TeamConfig struct {
-	Name string
+	Name  string
 	Write bool
-	Read bool
+	Read  bool
 }
 
 type OrgConfig struct {
-	Id string
+	Id          string
 	Description string
-	Team []TeamConfig
+	Team        []TeamConfig
 }
 
 type PubKeyConfig struct {
 	Type string
-	Val string
+	Val  string
 }
 
 type UserOrgConfig struct {
-	Id string
+	Id    string
 	Teams []string
 }
 
 type UserConfig struct {
-	Name string
+	Name    string
 	SSHKeys []PubKeyConfig
-	Orgs []UserOrgConfig
+	Orgs    []UserOrgConfig
 }
 
 type Config struct {
 	Server ServerConfig
-	Orgs []OrgConfig
-	Users []UserConfig
+	Orgs   []OrgConfig
+	Users  []UserConfig
 }
 
 func (ci *ConfigInfo) ReadFile() {
