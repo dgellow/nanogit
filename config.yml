@@ -1,0 +1,52 @@
+server:
+  root: /var/nanogit/
+  user: nanogit
+  group: nanogit
+
+orgs:
+  - id: fixme
+    description: FIXME Hackerspace
+    team:
+      - name: default
+        write: yes
+        read: yes
+      - name: ctf
+        write: yes
+        read: yes
+      - name: comity
+        write: yes
+        read: yes
+  - id: qrclabs
+    description: QRC Labs company
+    team:
+      - name: default
+        write: no
+        read: yes
+      - name: dev
+        write: yes
+        read: yes
+      - name: admin
+        write: no
+        read: yes
+
+users:
+  - name: dgellow
+    sshkeys:
+      - type: url
+        val: github.com/dgellow.keys
+    orgs:
+      - id: qrclabs
+        teams:
+          - dev
+          - admin
+      - id: fixme
+  - name: gcmalloc
+    sshkeys:
+      - type: hardcoded
+        val: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDOqGxOcWvCkoqdoE0JI3tCzWCcKiidisfSt1WtvkG2s3CH7QkzK7aUgcZUsmI3Qf8FU11CVh9AM0bjhyXd9SYuBpacrjaldrdmbIujKwXIGgQcjUl2ofexkOmZxAqAE0YAC/QOlFrPSm6Sk0eXb5+5cvpMvfjwft4PJBowuOPDNwKSWDoNJ0Nk+uOKWd0BJDYRgY7TnzwJR33cOo2gpoXI7MEfNIXCWYJaPk46HtT44mR1IQ3EeftQOop+weJj1uYFtKcoFzUYvleyyb02zUoGYUu0+Ldao2DJXFoFDE/XgId5LJekD4eH8N8zbrNSC5SvV3CJR9jIZ+MWYbwK1Tgx
+      - type: file
+        val: /path/to/file
+    orgs:
+      - id: fixme
+        teams:
+          - ctf

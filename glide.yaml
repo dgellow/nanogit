@@ -1,0 +1,9 @@
+package: github.com/qrclabs/nanogit
+import:
+- package: github.com/urfave/cli
+  version: ^1.19.1
+- package: gopkg.in/yaml.v2
+- package: golang.org/x/crypto
+  subpackages:
+  - ssh
+- package: github.com/qrclabs/sshgit

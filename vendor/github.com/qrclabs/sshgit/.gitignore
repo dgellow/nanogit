@@ -1,0 +1,6 @@
+*.a
+dist/
+.DS_Store
+vendor
+example/example
+example/*.rsa*
