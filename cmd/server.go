@@ -21,6 +21,11 @@ var CmdServer = cli.Command{
 			Value: "config.yml",
 			Usage: "Custom configuration file path",
 		},
+		cli.IntFlag{
+			Name: "loglevel",
+			Value: 3,
+			Usage: "0=Trace, 1=Debug, 2=Info, 3=Warn, 4=Error, 5=Critical, 6=Fatal",
+		},
 	},
 }
 
@@ -41,6 +46,7 @@ func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, 
 func runServer(c *cli.Context) error {
 	log.Trace("server: runServer")
 
+	settings.NewConsoleLogger(c.Int("loglevel"))
 	settings.ConfInfo.ConfigFile = c.String("config")
 	settings.ConfInfo.ReadFile()
 
