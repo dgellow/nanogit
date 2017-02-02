@@ -14,9 +14,12 @@ func CleanPath(path string) string {
 	return strings.Replace(path, "'", "", -1)
 }
 
-func SplitPath(path string) (org string, repo string) {
+func SplitPath(path string) (org string, repo string, err error) {
 	sliceStr := strings.Split(path, "/")
-	return strings.ToLower(sliceStr[0]), strings.ToLower(sliceStr[1])
+	if len(sliceStr) < 2 {
+		return "", "", fmt.Errorf("A path should be: orgname/reponame, got: %s", path)
+	}
+	return strings.ToLower(sliceStr[0]), strings.ToLower(sliceStr[1]), nil
 }
 
 func getDataRoot() (string, error) {

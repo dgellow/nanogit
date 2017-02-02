@@ -81,7 +81,11 @@ func runServer(c *cli.Context) error {
 
 func handleUploadPack(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	log.Trace("server: Handle git-upload-pack: args: %s", args)
-	org, repo := dir.SplitPath(dir.CleanPath(args))
+	org, repo, err := dir.SplitPath(dir.CleanPath(args))
+	if err != nil {
+		return nil, fmt.Errorf("Error when splitting path: %v", err)
+	}
+
 	read, write := auth.CheckAuth(keyId, org, repo)
 
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
@@ -103,7 +107,11 @@ func handleUploadPack(keyId string, cmd string, args string) (*exec.Cmd, error) 
 
 func handleUploadArchive(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	log.Trace("server: Handle git-upload-archive: args: %s", args)
-	org, repo := dir.SplitPath(dir.CleanPath(args))
+	org, repo, err := dir.SplitPath(dir.CleanPath(args))
+	if err != nil {
+		return nil, fmt.Errorf("Error when splitting path: %v", err)
+	}
+
 	read, write := auth.CheckAuth(keyId, org, repo)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {
@@ -117,7 +125,11 @@ func handleUploadArchive(keyId string, cmd string, args string) (*exec.Cmd, erro
 
 func handleReceivePack(keyId string, cmd string, args string) (*exec.Cmd, error) {
 	log.Trace("server: Handle git-receive-pack: args: %s", args)
-	org, repo := dir.SplitPath(dir.CleanPath(args))
+	org, repo, err := dir.SplitPath(dir.CleanPath(args))
+	if err != nil {
+		return nil, fmt.Errorf("Error when splitting path: %v", err)
+	}
+
 	read, write := auth.CheckAuth(keyId, org, repo)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {
