@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/crypto/ssh"
 	"github.com/qrclabs/sshooks/log"
+	"golang.org/x/crypto/ssh"
 )
 
 var packageName = "sshooks"
@@ -33,9 +33,9 @@ type ServerConfig struct {
 	PrivatekeyPath    string
 	PublicKeyCallback func(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, err error)
 	KeygenConfig      SSHKeygenConfig
-	CommandsCallbacks map[string]func(keyId string, cmd string, args string) error
+	CommandsCallbacks map[string]func(keyId string, cmd string, args string) (input io.WriteCloser, stdout io.ReadCloser, stderr io.ReadCloser, err error)
 	// Logger based on the interface defined in sshooks/log
- 	Log               log.Log
+	Log log.Log
 }
 
 // Starts an SSH server on given port
@@ -54,7 +54,7 @@ func Listen(config *ServerConfig) {
 		PublicKeyCallback: func(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
 			keyId, err := config.PublicKeyCallback(conn, key)
 			if err != nil {
-				config.Log.Error("Error while handling public key: %v", err)
+				config.Log.Error(formatLog("Error while handling public key: %v"), err)
 			}
 			return &ssh.Permissions{Extensions: map[string]string{"key-id": keyId}}, nil
 		},
@@ -126,7 +126,7 @@ func serve(config *ServerConfig, sshConfig *ssh.ServerConfig, host string, port 
 				return
 			}
 
-			config.Log.Trace(formatLog(fmt.Sprintf("Connection from %s (%s)", sConn.RemoteAddr(), sConn.ClientVersion())))
+			config.Log.Trace(formatLog("Connection from %s (%s)"), sConn.RemoteAddr(), sConn.ClientVersion())
 			go ssh.DiscardRequests(reqs)
 			go handleServerConn(config, sConn.Permissions.Extensions["key-id"], channels)
 		}()
@@ -143,7 +143,7 @@ func cleanCommand(cmd string) string {
 }
 
 func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewChannel) {
-	fmt.Println("Handle server connection")
+	config.Log.Trace(formatLog("Handle server connection"))
 
 	// Loop on channels
 	for newChan := range chans {
@@ -162,11 +162,7 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 			defer ch.Close()
 
 			for req := range in {
-				fmt.Println("Request")
-				fmt.Printf("req.Type: %v\n", req.Type)
-				fmt.Printf("req.Payload: %s\n", req.Payload)
-				fmt.Println("")
-
+				config.Log.Trace(formatLog("Request: %v"), req)
 				payload := cleanCommand(string(req.Payload))
 				switch req.Type {
 				case "env":
@@ -185,19 +181,21 @@ func handleServerConn(config *ServerConfig, keyId string, chans <-chan ssh.NewCh
 				case "exec":
 					cmd := strings.TrimLeft(payload, "'()")
 					config.Log.Trace(formatLog("Cleaned payload: %v"), cmd)
-					err := handleCommand(config, keyId, cmd)
+					input, stdout, stderr, err := handleCommand(config, keyId, cmd)
 					if err != nil {
 						config.Log.Error("Error in command handler: cmd: %s, error: %v", cmd, err)
 					}
 
 					req.Reply(true, nil)
+					go io.Copy(input, ch)
+					io.Copy(ch, stdout)
+					io.Copy(ch.Stderr(), stderr)
+
 					ch.SendRequest("exit-status", false, []byte{0, 0, 0, 0})
 					return
 				default:
 				}
 
-				fmt.Println("")
-				fmt.Println("")
 			}
 		}(reqs)
 	}
@@ -211,12 +209,34 @@ func parseCommand(cmd string) (exec string, args string) {
 	return ss[0], strings.Replace(ss[1], "'/", "'", 1)
 }
 
-func handleCommand(config *ServerConfig, keyId string, cmd string) error {
+func handleCommand(config *ServerConfig, keyId string, cmd string) (input io.WriteCloser, stdout io.ReadCloser, stderr io.ReadCloser, err error) {
 	exec, args := parseCommand(cmd)
 	cmdHandler, present := config.CommandsCallbacks[exec]
 	if !present {
-		config.Log.Trace("No handler for command: %s, args: %v", exec, args)
-		return nil
+		config.Log.Trace(formatLog("No handler for command: %s, args: %v"), exec, args)
+		return &dummyWriteClose{}, &dummyReadCloser{}, &dummyReadCloser{}, nil
 	}
 	return cmdHandler(keyId, cmd, args)
+}
+
+type dummyWriteClose struct {
+}
+
+func (dwc *dummyWriteClose) Write(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (dwc *dummyWriteClose) Close() error {
+	return nil
+}
+
+type dummyReadCloser struct {
+}
+
+func (drc *dummyReadCloser) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (drc *dummyReadCloser) Close() error {
+	return nil
 }
