@@ -1,6 +1,12 @@
 package dir
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/qrclabs/nanogit/settings"
+)
 
 type TestDataCleanPath struct {
 	in  string
@@ -47,13 +53,59 @@ func TestSplitPath(t *testing.T) {
 	for i, test := range tests {
 		org, repo, err := SplitPath(test.in)
 		if test.org != org {
-			t.Errorf("#%d: org, _ := SplitPath(%s) == %s; expected %s", i, test.in, org, test.org)
+			t.Errorf("#%d: org, _, _ := SplitPath(%s) == %s; expected %s", i, test.in, org, test.org)
 		}
 		if test.repo != repo {
-			t.Errorf("#%d: _, repo := SplitPath(%s) == %s; expected %s", i, test.in, repo, test.repo)
+			t.Errorf("#%d: _, repo, _ := SplitPath(%s) == %s; expected %s", i, test.in, repo, test.repo)
 		}
 		if (err == nil && test.err != "") || (err != nil && err.Error() != test.err) {
-			t.Errorf("#%d: _, _, err := TestSplitPath(%s) == %v; expected %v", i, test.in, err, test.err)
+			t.Errorf("#%d: _, _, err := SplitPath(%s) == %v; expected %v", i, test.in, err, test.err)
+		}
+	}
+}
+
+
+type TestDataGetOrgDir struct {
+	in string
+	out string
+	err string
+}
+
+func TestGetOrgDir(t *testing.T) {
+	// With default data root in configuration file
+	testDefault := TestDataGetOrgDir{"", "", "Data root in configuration file is empty"}
+	out, err := GetOrgDir(testDefault.in)
+	if testDefault.out != out {
+		t.Errorf("Default data root: out, _ := GetOrgDir(%s) == %s; expected %s", testDefault.in, out, testDefault.out)
+	}
+	if (err == nil && testDefault.err != "") || (err != nil && err.Error() != testDefault.err) {
+		t.Errorf("Default data root: _, err := GetOrgDir(%s) == %v; expected %v", testDefault.in, err, testDefault.err)
+	}
+
+	// Set data root
+	settings.ConfInfo.Conf.Server.DataRoot = "./dataroot"
+	currentDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		t.Errorf("Error when trying to get absolute path of current directory")
+	}
+
+	// Tests after a data root has been set
+	tests := []TestDataGetOrgDir{
+		{"", "/dataroot", ""},
+		{"foo", "/dataroot/foo", ""},
+		{" ", "/dataroot/ ", ""},
+		{"/foo", "/dataroot/foo", ""},
+		{"/foo/bar", "/dataroot/foo/bar", ""},
+	}
+
+	for i, test := range tests {
+		out, err := GetOrgDir(test.in)
+		testOut := filepath.Join(currentDir, test.out)
+		if testOut != out {
+			t.Errorf("#%d: out, _ := GetOrgDir(%s)=%s; expected %s", i, test.in, out, testOut)
+		}
+		if (err == nil && test.err != "") || (err != nil && err.Error() != test.err) {
+			t.Errorf("#%d: _, err := GetOrgDir(%s) == %v; expected %v", i, test.in, err, test.err)
 		}
 	}
 }
