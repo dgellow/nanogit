@@ -35,7 +35,7 @@ func getDataRoot() (string, error) {
 	}
 }
 
-func getOrgDir(org string) (string, error) {
+func GetOrgDir(org string) (string, error) {
 	dataRoot, err := getDataRoot()
 	if err != nil {
 		return dataRoot, err
@@ -43,7 +43,7 @@ func getOrgDir(org string) (string, error) {
 	return filepath.Join(dataRoot, org), nil
 }
 
-func getRepoDir(org string, repo string) (string, error) {
+func GetRepoDir(org string, repo string) (string, error) {
 	dataRoot, err := getDataRoot()
 	if err != nil {
 		return dataRoot, err
@@ -51,19 +51,9 @@ func getRepoDir(org string, repo string) (string, error) {
 	return filepath.Join(dataRoot, org, repo), nil
 }
 
-func GetRepoPath(org string, repo string) (string, error) {
-	log.Trace("dir: GetRepoPath")
-	dataRoot, err := getDataRoot()
-	repoPath, err := getRepoDir(org, repo)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dataRoot, repoPath), nil
-}
-
 func IsOrgExist(path string) (bool, error) {
 	log.Trace("dir: IsOrgExist, path: %s", path)
-	target, err := getOrgDir(path)
+	target, err := GetOrgDir(path)
 	if err != nil {
 		return false, err
 	}
@@ -81,7 +71,7 @@ func IsOrgExist(path string) (bool, error) {
 
 func IsRepoExist(orgPath string, repoPath string) (bool, error) {
 	log.Trace("dir: IsRepoExist, orgPath: %s, repoPath: %s", orgPath, repoPath)
-	target, err := getRepoDir(orgPath, repoPath)
+	target, err := GetRepoDir(orgPath, repoPath)
 	log.Trace("dir: IsRepoExist, target: %s", target)
 	if err != nil {
 		return false, err
