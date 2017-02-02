@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -29,7 +29,7 @@ type TeamConfig struct {
 type OrgConfig struct {
 	Id          string
 	Description string
-	Team        []TeamConfig
+	Teams       []TeamConfig
 }
 
 type PubKeyConfig struct {
@@ -78,5 +78,17 @@ func (ci *ConfigInfo) LookupUserByKey(k string) (UserConfig, error) {
 			}
 		}
 	}
-	return UserConfig{}, errors.New("Cannot find given key in config")
+	return UserConfig{}, fmt.Errorf("Cannot find given key in config")
+}
+
+func (ci *ConfigInfo) LookupOrgById(orgId string) (OrgConfig, error) {
+	log.Trace("config: LookupOrgById, orgId: %v", orgId)
+	for _, org := range ci.Conf.Orgs {
+		log.Trace("config: %v", org.Id)
+		log.Trace("config: length: %t", org.Id == orgId)
+		if org.Id == orgId {
+			return org, nil
+		}
+	}
+	return OrgConfig{}, fmt.Errorf("Cannot find org in config: %s", orgId)
 }

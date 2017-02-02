@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/qrclabs/sshooks"
 	"github.com/urfave/cli"
 	"golang.org/x/crypto/ssh"
 
+	"github.com/qrclabs/nanogit/auth"
 	"github.com/qrclabs/nanogit/log"
 	"github.com/qrclabs/nanogit/settings"
 )
@@ -29,7 +31,7 @@ var CmdServer = cli.Command{
 	},
 }
 
-func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, error) {
+func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (string, error) {
 	log.Trace("server: pubKeyHandler")
 
 	keystr := strings.TrimSpace(string(ssh.MarshalAuthorizedKey(key)))
@@ -38,9 +40,9 @@ func pubKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (*ssh.Permissions, 
 	_, err := settings.ConfInfo.LookupUserByKey(keystr)
 	if err != nil {
 		log.Error("server: unauthorized access: %v", err)
-		return nil, err
+		return "", err
 	}
-	return &ssh.Permissions{}, nil
+	return keystr, nil
 }
 
 func runServer(c *cli.Context) error {
@@ -53,7 +55,7 @@ func runServer(c *cli.Context) error {
 
 	log.Trace("server: ConfigFile: %s", settings.ConfInfo.ConfigFile)
 
-	commandsHandlers := map[string]func(string) error{
+	commandsHandlers := map[string]func(string, string, string) error{
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,
@@ -75,17 +77,41 @@ func runServer(c *cli.Context) error {
 	}
 }
 
-func handleUploadPack(args string) error {
-	log.Trace("Handle git-upload-pack: args: %s", args)
+func handleUploadPack(keyId string, cmd string, args string) error {
+	log.Trace("server: Handle git-upload-pack: args: %s", args)
+	read, write := auth.CheckAuth(keyId, args)
+	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
+	if !read {
+		return fmt.Errorf("Unauthorized read access: %s", args)
+	}
+	if !write {
+		return fmt.Errorf("Unauthorized write access: %s", args)
+	}
 	return nil
 }
 
-func handleUploadArchive(args string) error {
-	log.Trace("Handle git-upload-archive: args: %s", args)
+func handleUploadArchive(keyId string, cmd string, args string) error {
+	log.Trace("server: Handle git-upload-archive: args: %s", args)
+	read, write := auth.CheckAuth(keyId, args)
+	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
+	if !read {
+		return fmt.Errorf("Unauthorized read access: %s", args)
+	}
+	if !write {
+		return fmt.Errorf("Unauthorized write access: %s", args)
+	}
 	return nil
 }
 
-func handleReceivePack(args string) error {
-	log.Trace("Handle git-receive-pack: args: %s", args)
+func handleReceivePack(keyId string, cmd string, args string) error {
+	log.Trace("server: Handle git-receive-pack: args: %s", args)
+	read, write := auth.CheckAuth(keyId, args)
+	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
+	if !read {
+		return fmt.Errorf("Unauthorized read access: %s", args)
+	}
+	if !write {
+		return fmt.Errorf("Unauthorized write access: %s", args)
+	}
 	return nil
 }
