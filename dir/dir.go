@@ -51,6 +51,16 @@ func getRepoDir(org string, repo string) (string, error) {
 	return filepath.Join(dataRoot, org, repo), nil
 }
 
+func GetRepoPath(org string, repo string) (string, error) {
+	log.Trace("dir: GetRepoPath")
+	dataRoot, err := getDataRoot()
+	repoPath, err := getRepoDir(org, repo)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dataRoot, repoPath), nil
+}
+
 func IsOrgExist(path string) (bool, error) {
 	log.Trace("dir: IsOrgExist, path: %s", path)
 	target, err := getOrgDir(path)
@@ -87,9 +97,8 @@ func IsRepoExist(orgPath string, repoPath string) (bool, error) {
 	}
 }
 
-func IsPathExist(path string) (bool, error) {
+func IsPathExist(org string, repo string) (bool, error) {
 	log.Trace("dir: IsPathExist")
-	org, repo := SplitPath(CleanPath(path))
 	orgExists, err := IsOrgExist(org)
 	if err != nil {
 		return orgExists, err

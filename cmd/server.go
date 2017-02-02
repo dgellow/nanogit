@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os/exec"
 	"strings"
 
 	"github.com/qrclabs/sshooks"
@@ -56,7 +58,7 @@ func runServer(c *cli.Context) error {
 
 	log.Trace("server: ConfigFile: %s", settings.ConfInfo.ConfigFile)
 
-	commandsHandlers := map[string]func(string, string, string) error{
+	commandsHandlers := map[string]func(string, string, string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error){
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,
@@ -78,48 +80,68 @@ func runServer(c *cli.Context) error {
 	}
 }
 
-func handleUploadPack(keyId string, cmd string, args string) error {
+func handleUploadPack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	log.Trace("server: Handle git-upload-pack: args: %s", args)
-	pathExists, err := dir.IsPathExist(args)
+	org, repo := dir.SplitPath(dir.CleanPath(args))
+	pathExists, err := dir.IsPathExist(org, repo)
 	if err != nil {
-		return fmt.Errorf("Error when checking if repository path exists: %v", err)
+		return nil, nil, nil, fmt.Errorf("Error when checking if repository path exists: %v", err)
 	}
 	if !pathExists {
-		return fmt.Errorf("Repository path doesn't exist: %s", args)
+		return nil, nil, nil, fmt.Errorf("Repository path doesn't exist, org: %s, repo: %s", org, repo)
 	}
 	read, write := auth.CheckAuth(keyId, args)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {
-		return fmt.Errorf("Unauthorized read access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized read access: %s", args)
 	}
 	if !write {
-		return fmt.Errorf("Unauthorized write access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized write access: %s", args)
 	}
-	return nil
+
+	command := exec.Command("git-upload-pack", args)
+	log.Debug("server: handleUploadPack: command: %v", command)
+	stdout, err := command.StdoutPipe()
+	log.Trace("server: handleUploadPack: stdout: %v", stdout)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("Error when trying to access stdout: %v", err)
+	}
+	stderr, err := command.StderrPipe()
+	log.Trace("server: handleUploadPack: stderr: %v", stderr)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("Error when trying to access stderr: %v", err)
+	}
+	input, err := command.StdinPipe()
+	log.Trace("server: handleUploadPack: input: %v", input)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("Error when trying to access input: %v", err)
+	}
+
+	return input, stdout, stderr, nil
 }
 
-func handleUploadArchive(keyId string, cmd string, args string) error {
+func handleUploadArchive(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	log.Trace("server: Handle git-upload-archive: args: %s", args)
 	read, write := auth.CheckAuth(keyId, args)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {
-		return fmt.Errorf("Unauthorized read access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized read access: %s", args)
 	}
 	if !write {
-		return fmt.Errorf("Unauthorized write access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized write access: %s", args)
 	}
-	return nil
+	return nil, nil, nil, nil
 }
 
-func handleReceivePack(keyId string, cmd string, args string) error {
+func handleReceivePack(keyId string, cmd string, args string) (io.WriteCloser, io.ReadCloser, io.ReadCloser, error) {
 	log.Trace("server: Handle git-receive-pack: args: %s", args)
 	read, write := auth.CheckAuth(keyId, args)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {
-		return fmt.Errorf("Unauthorized read access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized read access: %s", args)
 	}
 	if !write {
-		return fmt.Errorf("Unauthorized write access: %s", args)
+		return nil, nil, nil, fmt.Errorf("Unauthorized write access: %s", args)
 	}
-	return nil
+	return nil, nil, nil, nil
 }
