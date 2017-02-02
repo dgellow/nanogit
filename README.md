@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/qrclabs/nanogit.svg?branch=master)](https://travis-ci.org/qrcLabs/nanogit)
+[![Build Status](https://travis-ci.org/qrclabs/nanogit.svg?branch=master)](https://travis-ci.org/qrclabs/nanogit)
 [![Coverage Status](https://coveralls.io/repos/github/qrclabs/nanogit/badge.svg?branch=master)](https://coveralls.io/github/qrclabs/nanogit?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/qrclabs/nanogit)](https://goreportcard.com/report/github.com/qrclabs/nanogit)
 
@@ -33,7 +33,7 @@ $ nanogit server
 $ nanogit server --config /path/to/custom/configfile.yml
 
 # When the server is running you can begin to use git commands
-$ git clone git@localhost:1337/qrcLabs/myproject.git
+$ git clone git@localhost:1337/qrclabs/myproject.git
 ```
 
 ## Configuration
