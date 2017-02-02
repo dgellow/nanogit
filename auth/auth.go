@@ -1,27 +1,17 @@
 package auth
 
 import (
-	"strings"
-
+	"github.com/qrclabs/nanogit/dir"
 	"github.com/qrclabs/nanogit/log"
 	"github.com/qrclabs/nanogit/settings"
 )
 
 func CheckAuth(key string, path string) (read bool, write bool) {
 	log.Trace("auth: CheckAuth, path: %s", path)
-	org, repo := splitPath(cleanPath(path))
+	org, repo := dir.SplitPath(dir.CleanPath(path))
 	orgRead, orgWrite := authOrg(key, org)
 	repoRead, repoWrite := authRepo(key, repo)
 	return orgRead || repoRead, orgWrite || repoWrite
-}
-
-func cleanPath(path string) string {
-	return strings.Replace(path, "'", "", -1)
-}
-
-func splitPath(path string) (org string, repo string) {
-	sliceStr := strings.Split(path, "/")
-	return strings.ToLower(sliceStr[0]), strings.ToLower(sliceStr[1])
 }
 
 func authOrg(key string, orgPath string) (read bool, write bool) {

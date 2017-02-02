@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/qrclabs/nanogit/auth"
+	"github.com/qrclabs/nanogit/dir"
 	"github.com/qrclabs/nanogit/log"
 	"github.com/qrclabs/nanogit/settings"
 )
@@ -79,6 +80,13 @@ func runServer(c *cli.Context) error {
 
 func handleUploadPack(keyId string, cmd string, args string) error {
 	log.Trace("server: Handle git-upload-pack: args: %s", args)
+	pathExists, err := dir.IsPathExist(args)
+	if err != nil {
+		return fmt.Errorf("Error when checking if repository path exists: %v", err)
+	}
+	if !pathExists {
+		return fmt.Errorf("Repository path doesn't exist: %s", args)
+	}
 	read, write := auth.CheckAuth(keyId, args)
 	log.Trace("server: Rights policy: read: %t, write: %t", read, write)
 	if !read {

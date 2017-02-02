@@ -15,9 +15,9 @@ type ConfigInfo struct {
 }
 
 type ServerConfig struct {
-	Root  string
-	User  string
-	Group string
+	DataRoot string
+	User     string
+	Group    string
 }
 
 type TeamConfig struct {
