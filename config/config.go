@@ -72,7 +72,6 @@ func (ci *ConfigInfo) LookupUserByKey(k string) (UserConfig, error) {
 	log.Trace("config: LookupUserByKey")
 	for _, user := range ci.Conf.Users {
 		for _, key := range user.SSHKeys {
-			log.Trace("config: key: %s", key)
 			if key.Val == k {
 				return user, nil
 			}
@@ -84,8 +83,6 @@ func (ci *ConfigInfo) LookupUserByKey(k string) (UserConfig, error) {
 func (ci *ConfigInfo) LookupOrgById(orgId string) (OrgConfig, error) {
 	log.Trace("config: LookupOrgById, orgId: %v", orgId)
 	for _, org := range ci.Conf.Orgs {
-		log.Trace("config: %v", org.Id)
-		log.Trace("config: length: %t", org.Id == orgId)
 		if org.Id == orgId {
 			return org, nil
 		}
