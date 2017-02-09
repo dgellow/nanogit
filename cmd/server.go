@@ -72,10 +72,14 @@ func runServer(c *cli.Context) error {
 		CommandsCallbacks: commandsHandlers,
 		Log:               log.Log,
 	}
-	sshooks.Listen(sshooksConfig)
 
-	// Keep the program running
-	for {
+	err := sshooks.Listen(sshooksConfig)
+	if err != nil {
+		return err
+	} else {
+		// Keep the program running
+		for {
+		}
 	}
 }
 
