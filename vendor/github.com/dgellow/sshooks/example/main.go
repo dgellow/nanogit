@@ -2,13 +2,12 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/qrclabs/sshooks"
+	"github.com/dgellow/sshooks"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -29,22 +28,15 @@ func checkPubKey(key ssh.PublicKey) (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		fmt.Printf("line: %s\n", line)
-		fmt.Printf("keystr: %s\n", keystr)
-		fmt.Println("")
-
 		if line == keystr {
-			fmt.Println("found key!")
+			logger.Trace("Found key!")
 			return keystr, nil
 		}
 	}
 	if err := scanner.Err(); err != nil {
 		logger.Fatal("Error while reading file: %s, error: %v", file, err)
 	}
-
-	fmt.Println("found nothing :(")
-	return keystr, errors.New("key not found")
+	return keystr, fmt.Errorf("key not found")
 }
 
 func publicKeyHandler(conn ssh.ConnMetadata, key ssh.PublicKey) (keyId string, err error) {
@@ -74,15 +66,11 @@ func handleReceivePack(keyId string, cmd string, args string) (*exec.Cmd, error)
 
 func main() {
 	logger = &Logger{LogLevel: 0, Prefix: "example"}
-
-	fmt.Println("Start program")
-
 	commandsHandlers := map[string]func(string, string, string) (*exec.Cmd, error){
 		"git-upload-pack":    handleUploadPack,
 		"git-upload-archive": handleUploadArchive,
 		"git-receive-pack":   handleReceivePack,
 	}
-
 	config := &sshooks.ServerConfig{
 		Host:              "localhost",
 		Port:              1337,
@@ -92,8 +80,6 @@ func main() {
 		CommandsCallbacks: commandsHandlers,
 		Log:               logger,
 	}
-
-	fmt.Println("Run server")
 	sshooks.Listen(config)
 
 	// Keep the program running

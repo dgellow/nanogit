@@ -1,14 +1,15 @@
-hash: e8a4617473e97135c6d6c307589cda8e86d9f178332ef8fe31c3441c6f94e767
-updated: 2017-02-02T20:43:15.360004053+01:00
+hash: 039038699dedba000b096d5218e57f870da9ce62fbf53f936d041635f39695d8
+updated: 2017-02-09T16:15:15.261305747+01:00
 imports:
-- name: github.com/qrclabs/sshooks
-  version: 20a7335c0d5e2e27bf31127daf4baa8b80f9ff93
+- name: github.com/dgellow/sshooks
+  version: 6791d540db541aa51e1889705bf57c6b9a97e90f
   subpackages:
+  - errors
   - log
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/crypto
-  version: 641ab6b32049cabca26c30bf27baaae445bf4175
+  version: bed12803fa9663d7aa2c2346b0c634ad2dcd43b7
   subpackages:
   - curve25519
   - ed25519
