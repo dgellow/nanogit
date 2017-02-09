@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"github.com/qrclabs/nanogit/log"
-	"github.com/qrclabs/nanogit/settings"
+	"github.com/dgellow/nanogit/log"
+	"github.com/dgellow/nanogit/settings"
 )
 
 func CheckAuth(key string, org string, repo string) (read bool, write bool) {

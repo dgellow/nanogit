@@ -1,4 +1,4 @@
-package: github.com/qrclabs/nanogit
+package: github.com/dgellow/nanogit
 import:
 - package: github.com/urfave/cli
   version: ^1.19.1
@@ -6,4 +6,4 @@ import:
 - package: golang.org/x/crypto
   subpackages:
   - ssh
-- package: github.com/qrclabs/sshooks
+- package: github.com/dgellow/sshooks

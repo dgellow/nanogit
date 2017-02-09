@@ -5,14 +5,14 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/qrclabs/sshooks"
+	"github.com/dgellow/sshooks"
 	"github.com/urfave/cli"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/qrclabs/nanogit/auth"
-	"github.com/qrclabs/nanogit/dir"
-	"github.com/qrclabs/nanogit/log"
-	"github.com/qrclabs/nanogit/settings"
+	"github.com/dgellow/nanogit/auth"
+	"github.com/dgellow/nanogit/dir"
+	"github.com/dgellow/nanogit/log"
+	"github.com/dgellow/nanogit/settings"
 )
 
 var CmdServer = cli.Command{

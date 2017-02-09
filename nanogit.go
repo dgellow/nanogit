@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli"
 
-	"github.com/qrclabs/nanogit/cmd"
+	"github.com/dgellow/nanogit/cmd"
 )
 
 func main() {

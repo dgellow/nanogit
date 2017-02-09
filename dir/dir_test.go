@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/qrclabs/nanogit/settings"
+	"github.com/dgellow/nanogit/settings"
 )
 
 type TestDataCleanPath struct {

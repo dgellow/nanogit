@@ -6,7 +6,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/qrclabs/nanogit/log"
+	"github.com/dgellow/nanogit/log"
 )
 
 type ConfigInfo struct {

@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/qrclabs/nanogit/config"
-	"github.com/qrclabs/nanogit/log"
+	"github.com/dgellow/nanogit/config"
+	"github.com/dgellow/nanogit/log"
 )
 
 var (
