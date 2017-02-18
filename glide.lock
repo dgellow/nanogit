@@ -1,5 +1,5 @@
 hash: 039038699dedba000b096d5218e57f870da9ce62fbf53f936d041635f39695d8
-updated: 2017-02-09T16:15:15.261305747+01:00
+updated: 2017-02-18T22:17:49.029286285+01:00
 imports:
 - name: github.com/dgellow/sshooks
   version: 6791d540db541aa51e1889705bf57c6b9a97e90f
@@ -9,12 +9,12 @@ imports:
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/crypto
-  version: bed12803fa9663d7aa2c2346b0c634ad2dcd43b7
+  version: 453249f01cfeb54c3d549ddb75ff152ca243f9d8
   subpackages:
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
   - ssh
 - name: gopkg.in/yaml.v2
-  version: 4c78c975fe7c825c6d1466c42be594d1d6f3aba6
+  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
 testImports: []
